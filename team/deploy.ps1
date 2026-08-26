@@ -25,6 +25,66 @@ function Invoke-Terraform {
     }
 }
 
+function Assert-TeamMembership {
+    param([Parameter(Mandatory = $true)][int]$TeamId)
+
+    $userId = & az ad signed-in-user show `
+        --query id `
+        --output tsv `
+        --only-show-errors
+
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($userId)) {
+        throw "No se pudo identificar al usuario autenticado en Azure."
+    }
+
+    $teamGroups = @(& az ad group list `
+        --filter "startswith(displayName, 'grupo-copa-')" `
+        --query "[].displayName" `
+        --output tsv `
+        --only-show-errors)
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "No se pudieron consultar los grupos de equipos en Azure."
+    }
+
+    $assignedTeamIds = @()
+    foreach ($groupName in $teamGroups) {
+        if ($groupName -notmatch '^grupo-copa-(\d+)$') {
+            continue
+        }
+
+        $assignedTeamId = [int]$Matches[1]
+
+        $belongsToGroup = & az ad group member check `
+            --group $groupName `
+            --member-id $userId.Trim() `
+            --query value `
+            --output tsv `
+            --only-show-errors
+
+        if ($LASTEXITCODE -ne 0) {
+            throw "No se pudo validar la membresia en el grupo '$groupName'."
+        }
+
+        if ($belongsToGroup.Trim() -eq "true") {
+            $assignedTeamIds += $assignedTeamId
+        }
+    }
+
+    if ($assignedTeamIds -notcontains $TeamId) {
+        $assignedGroupMessage = if ($assignedTeamIds.Count -gt 0) {
+            ($assignedTeamIds | ForEach-Object { "grupo-copa-$_" }) -join ", "
+        }
+        else {
+            "ningun grupo con formato grupo-copa-{numero}"
+        }
+
+        throw "El TeamId $TeamId no corresponde al grupo del usuario autenticado. Grupos asignados: $assignedGroupMessage."
+    }
+
+    Write-Host "Membresia validada: grupo-copa-$TeamId."
+}
+
 function Get-AzureResourceId {
     param(
         [Parameter(Mandatory = $true)][string]$ResourceGroupName,
@@ -54,6 +114,9 @@ Assert-Command -Name "terraform"
 if ($LASTEXITCODE -ne 0) {
     throw "No hay una sesion activa de Azure CLI. Ejecute 'az login' y vuelva a intentarlo."
 }
+
+Write-Host "Validando el grupo del usuario autenticado..."
+Assert-TeamMembership -TeamId $TeamId
 
 $teamName = $TeamId.ToString("000")
 $resourceGroupName = "rg-team-$TeamId-v2"
