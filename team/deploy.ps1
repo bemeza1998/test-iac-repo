@@ -37,52 +37,33 @@ function Assert-TeamMembership {
         throw "No se pudo identificar al usuario autenticado en Azure."
     }
 
-    $teamGroups = @(& az ad group list `
-        --filter "startswith(displayName, 'grupo-copa-')" `
-        --query "[].displayName" `
+    $groupName = "grupo-copa-$TeamId"
+    $groupId = & az ad group show `
+        --group $groupName `
+        --query id `
         --output tsv `
-        --only-show-errors)
+        --only-show-errors
+
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($groupId)) {
+        throw "No se pudo consultar el grupo '$groupName' en Azure."
+    }
+
+    $belongsToGroup = & az ad group member check `
+        --group $groupId.Trim() `
+        --member-id $userId.Trim() `
+        --query value `
+        --output tsv `
+        --only-show-errors
 
     if ($LASTEXITCODE -ne 0) {
-        throw "No se pudieron consultar los grupos de equipos en Azure."
+        throw "No se pudo validar la membresia en el grupo '$groupName'."
     }
 
-    $assignedTeamIds = @()
-    foreach ($groupName in $teamGroups) {
-        if ($groupName -notmatch '^grupo-copa-(\d+)$') {
-            continue
-        }
-
-        $assignedTeamId = [int]$Matches[1]
-
-        $belongsToGroup = & az ad group member check `
-            --group $groupName `
-            --member-id $userId.Trim() `
-            --query value `
-            --output tsv `
-            --only-show-errors
-
-        if ($LASTEXITCODE -ne 0) {
-            throw "No se pudo validar la membresia en el grupo '$groupName'."
-        }
-
-        if ($belongsToGroup.Trim() -eq "true") {
-            $assignedTeamIds += $assignedTeamId
-        }
+    if ($belongsToGroup.Trim() -ne "true") {
+        throw "El usuario autenticado no pertenece al grupo '$groupName'."
     }
 
-    if ($assignedTeamIds -notcontains $TeamId) {
-        $assignedGroupMessage = if ($assignedTeamIds.Count -gt 0) {
-            ($assignedTeamIds | ForEach-Object { "grupo-copa-$_" }) -join ", "
-        }
-        else {
-            "ningun grupo con formato grupo-copa-{numero}"
-        }
-
-        throw "El TeamId $TeamId no corresponde al grupo del usuario autenticado. Grupos asignados: $assignedGroupMessage."
-    }
-
-    Write-Host "Membresia validada: grupo-copa-$TeamId."
+    Write-Host "Membresia validada: $groupName."
 }
 
 function Get-AzureResourceId {
