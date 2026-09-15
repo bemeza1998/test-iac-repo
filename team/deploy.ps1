@@ -100,7 +100,7 @@ Write-Host "Validando el grupo del usuario autenticado..."
 Assert-TeamMembership -TeamId $TeamId
 
 $teamName = $TeamId.ToString("000")
-$resourceGroupName = "rg-team-$TeamId-v2"
+$resourceGroupName = "rg-team-$TeamId"
 $terraformVariable = "team_id=$TeamId"
 $workspaceName = "team-$TeamId"
 $planFile = Join-Path $PSScriptRoot ".terraform/team-$TeamId.tfplan"
