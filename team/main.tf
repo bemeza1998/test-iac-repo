@@ -13,7 +13,7 @@ data "azurerm_resource_group" "team" {
 }
 
 resource "azurerm_application_insights" "team_app_insights" {
-  name                = "copa-hackaton-2026-team-${local.team_name}-appi"
+  name                = "copa-hackaton-2026-team-${var.team_id}-appi"
   location            = data.azurerm_resource_group.team.location
   resource_group_name = data.azurerm_resource_group.team.name
   application_type    = "web"
