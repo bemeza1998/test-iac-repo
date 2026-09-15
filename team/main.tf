@@ -24,7 +24,11 @@ resource "azurerm_linux_web_app" "frontend-app" {
   resource_group_name = data.azurerm_resource_group.team.name 
   location            = data.azurerm_resource_group.team.location 
   service_plan_id     = data.azurerm_service_plan.plan_frontend.id
-  site_config {}
+  site_config {
+    application_stack {
+      node_version = "24-lts"
+    }
+  }
 
    app_settings = { 
     "SCO_DO_BUILD_DURING_DEPLOYMENT"        = "true"
@@ -45,7 +49,6 @@ resource "azurerm_linux_web_app" "backend-app" {
   } 
  
   app_settings = { 
-    "PRODUCT_SERVICE_URL" = "https://catalogapi.internal.azurewebsites.net" 
     "APPLICATIONINSIGHTS_CONNECTION_STRING" = azurerm_application_insights.team_app_insights.connection_string
     "ASPNETCORE_ENVIRONMENT"                = "Production"
     "SCO_DO_BUILD_DURING_DEPLOYMENT"        = "true"
