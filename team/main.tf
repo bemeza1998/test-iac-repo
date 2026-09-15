@@ -1,11 +1,11 @@
 data "azurerm_service_plan" "plan_frontend" { 
 	name                = "plan-front-${local.plan_index}" 
-	resource_group_name = "rg-hackathon-shared-v2" 
+	resource_group_name = "rg-hackathon-shared" 
 }
 
 data "azurerm_service_plan" "plan_backend" { 
 	name                = "plan-back-${local.plan_index}" 
-	resource_group_name = "rg-hackathon-shared-v2" 
+	resource_group_name = "rg-hackathon-shared" 
 }
 
 data "azurerm_resource_group" "team" { 
