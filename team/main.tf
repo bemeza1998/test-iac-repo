@@ -12,11 +12,20 @@ data "azurerm_resource_group" "team" {
   name     = "rg-team-${var.team_id}" 
 }
 
+resource "azurerm_log_analytics_workspace" "team" {
+  name                = "copa-hackaton-2026-team-${var.team_id}-law"
+  location            = data.azurerm_resource_group.team.location
+  resource_group_name = data.azurerm_resource_group.team.name
+  sku                 = "PerGB2018"
+  retention_in_days   = 30
+}
+
 resource "azurerm_application_insights" "team_app_insights" {
   name                = "copa-hackaton-2026-team-${var.team_id}-appi"
   location            = data.azurerm_resource_group.team.location
   resource_group_name = data.azurerm_resource_group.team.name
   application_type    = "web"
+  workspace_id        = azurerm_log_analytics_workspace.team.id
 }
 
 resource "azurerm_linux_web_app" "frontend-app" { 
