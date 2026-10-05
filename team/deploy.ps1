@@ -99,7 +99,6 @@ if ($LASTEXITCODE -ne 0) {
 Write-Host "Validando el grupo del usuario autenticado..."
 Assert-TeamMembership -TeamId $TeamId
 
-$teamName = $TeamId.ToString("000")
 $resourceGroupName = "rg-team-$TeamId"
 $terraformVariable = "team_id=$TeamId"
 $workspaceName = "team-$TeamId"
@@ -107,18 +106,23 @@ $planFile = Join-Path $PSScriptRoot ".terraform/team-$TeamId.tfplan"
 
 $resources = @(
     @{
+        Address = "azurerm_log_analytics_workspace.team"
+        Name = "copa-hackaton-2026-team-$TeamId-law"
+        Type = "Microsoft.OperationalInsights/workspaces"
+    },
+    @{
         Address = "azurerm_application_insights.team_app_insights"
-        Name = "appi-team-$teamName"
+        Name = "copa-hackaton-2026-team-$TeamId-appi"
         Type = "Microsoft.Insights/components"
     },
     @{
         Address = "azurerm_linux_web_app.frontend-app"
-        Name = "copab-hackaton-2026-team-$TeamId-frontend"
+        Name = "copa-hackaton-2026-team-$TeamId-frontend"
         Type = "Microsoft.Web/sites"
     },
     @{
         Address = "azurerm_linux_web_app.backend-app"
-        Name = "copab-hackaton-2026-team-$TeamId-api"
+        Name = "copa-hackaton-2026-team-$TeamId-api"
         Type = "Microsoft.Web/sites"
     }
 )
