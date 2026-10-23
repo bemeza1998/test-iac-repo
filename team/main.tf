@@ -13,7 +13,7 @@ data "azurerm_resource_group" "team" {
 }
 
 resource "azurerm_log_analytics_workspace" "team" {
-  name                = "copa-hackaton-2026-team-${var.team_id}-law"
+  name                = "copa-hackathon-2026-team-${var.team_id}-law"
   location            = data.azurerm_resource_group.team.location
   resource_group_name = data.azurerm_resource_group.team.name
   sku                 = "PerGB2018"
@@ -21,7 +21,7 @@ resource "azurerm_log_analytics_workspace" "team" {
 }
 
 resource "azurerm_application_insights" "team_app_insights" {
-  name                = "copa-hackaton-2026-team-${var.team_id}-appi"
+  name                = "copa-hackathon-2026-team-${var.team_id}-appi"
   location            = data.azurerm_resource_group.team.location
   resource_group_name = data.azurerm_resource_group.team.name
   application_type    = "web"
@@ -29,7 +29,7 @@ resource "azurerm_application_insights" "team_app_insights" {
 }
 
 resource "azurerm_linux_web_app" "frontend-app" { 
-  name                = "copa-hackaton-2026-team-${var.team_id}-frontend"
+  name                = "copa2-hackathon-2026-team-${var.team_id}-frontend"
   resource_group_name = data.azurerm_resource_group.team.name 
   location            = data.azurerm_resource_group.team.location 
   service_plan_id     = data.azurerm_service_plan.plan_frontend.id
@@ -46,7 +46,7 @@ resource "azurerm_linux_web_app" "frontend-app" {
 } 
  
 resource "azurerm_linux_web_app" "backend-app" { 
-  name                = "copa-hackaton-2026-team-${var.team_id}-api"
+  name                = "copa2-hackathon-2026-team-${var.team_id}-api"
   resource_group_name = data.azurerm_resource_group.team.name 
   location            = data.azurerm_resource_group.team.location 
   service_plan_id     = data.azurerm_service_plan.plan_backend.id
